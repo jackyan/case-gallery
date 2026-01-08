@@ -1,0 +1,176 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}投票 - 为明天的美食投票{% endblock %}
+
+{% block content %}
+<div class="container">
+    <section class="hero">
+        <h1 class="hero-title">🗳️ 为明天的美食投票</h1>
+        <p class="hero-subtitle">每个IP每天只能为同一食物投一票</p>
+    </section>
+
+    <!-- Tab 导航 -->
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="breakfast">🌅 早餐</button>
+        <button class="tab-btn" data-tab="lunch">☀️ 午餐</button>
+        <button class="tab-btn" data-tab="dinner">🌙 晚餐</button>
+    </div>
+
+    <!-- 早餐选项 -->
+    <div class="tab-content active" id="breakfast">
+        <div class="food-grid">
+            {% for food in breakfast_foods %}
+            <div class="food-card" data-food-id="{{ food.id }}">
+                {% if food.image %}
+                <div class="food-image" style="background-image: url('{{ food.image.url }}')"></div>
+                {% else %}
+                <div class="food-image food-placeholder">🍽️</div>
+                {% endif %}
+                <div class="food-info">
+                    <h3 class="food-name">{{ food.name }}</h3>
+                    {% if food.description %}
+                    <p class="food-desc">{{ food.description }}</p>
+                    {% endif %}
+                </div>
+                <button class="vote-button breakfast-btn" onclick="vote({{ food.id }}, '{{ food.name }}')">投票</button>
+            </div>
+            {% empty %}
+            <p class="empty-state">暂无早餐选项</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- 午餐选项 -->
+    <div class="tab-content" id="lunch">
+        <div class="food-grid">
+            {% for food in lunch_foods %}
+            <div class="food-card" data-food-id="{{ food.id }}">
+                {% if food.image %}
+                <div class="food-image" style="background-image: url('{{ food.image.url }}')"></div>
+                {% else %}
+                <div class="food-image food-placeholder">🍽️</div>
+                {% endif %}
+                <div class="food-info">
+                    <h3 class="food-name">{{ food.name }}</h3>
+                    {% if food.description %}
+                    <p class="food-desc">{{ food.description }}</p>
+                    {% endif %}
+                </div>
+                <button class="vote-button lunch-btn" onclick="vote({{ food.id }}, '{{ food.name }}')">投票</button>
+            </div>
+            {% empty %}
+            <p class="empty-state">暂无午餐选项</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- 晚餐选项 -->
+    <div class="tab-content" id="dinner">
+        <div class="food-grid">
+            {% for food in dinner_foods %}
+            <div class="food-card" data-food-id="{{ food.id }}">
+                {% if food.image %}
+                <div class="food-image" style="background-image: url('{{ food.image.url }}')"></div>
+                {% else %}
+                <div class="food-image food-placeholder">🍽️</div>
+                {% endif %}
+                <div class="food-info">
+                    <h3 class="food-name">{{ food.name }}</h3>
+                    {% if food.description %}
+                    <p class="food-desc">{{ food.description }}</p>
+                    {% endif %}
+                </div>
+                <button class="vote-button dinner-btn" onclick="vote({{ food.id }}, '{{ food.name }}')">投票</button>
+            </div>
+            {% empty %}
+            <p class="empty-state">暂无晚餐选项</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Toast 提示 -->
+<div id="toast" class="toast"></div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Tab 切换
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            // 移除所有激活状态
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+            // 添加当前激活状态
+            btn.classList.add('active');
+            document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+    });
+
+    // 页面加载时检查锚点
+    window.addEventListener('DOMContentLoaded', () => {
+        const hash = window.location.hash.substring(1);
+        if (hash && ['breakfast', 'lunch', 'dinner'].includes(hash)) {
+            const btn = document.querySelector(`[data-tab="${hash}"]`);
+            if (btn) btn.click();
+        }
+    });
+
+    // 获取 CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // 显示提示
+    function showToast(message, type = 'success') {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.className = `toast ${type} show`;
+
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, 3000);
+    }
+
+    // 投票函数
+    async function vote(foodId, foodName) {
+        try {
+            const formData = new FormData();
+            formData.append('food_id', foodId);
+            formData.append('csrfmiddlewaretoken', getCookie('csrftoken'));
+
+            const response = await fetch('/api/vote/', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                showToast(`✅ 成功为「${foodName}」投票！`, 'success');
+            } else {
+                showToast(`❌ ${data.error}`, 'error');
+            }
+        } catch (error) {
+            showToast('❌ 投票失败，请稍后重试', 'error');
+            console.error('投票错误:', error);
+        }
+    }
+</script>
+{% endblock %}

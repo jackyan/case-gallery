@@ -1,0 +1,35 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>{% block title %}食堂意见建议平台{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <h1 class="logo">🍽️ 食堂平台</h1>
+            <div class="nav-links">
+                <a href="{% url 'core:index' %}" class="nav-link">首页</a>
+                <a href="{% url 'core:vote_page' %}" class="nav-link">投票</a>
+                <a href="{% url 'core:suggestion_page' %}" class="nav-link">建议</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 食堂意见建议平台 | 让每一餐都更美好</p>
+        </div>
+    </footer>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

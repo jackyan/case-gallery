@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}意见建议 - 让我们听到您的声音{% endblock %}
+
+{% block content %}
+<div class="container">
+    <section class="hero">
+        <h1 class="hero-title">💭 意见建议</h1>
+        <p class="hero-subtitle">您的每一条建议都很重要！</p>
+    </section>
+
+    <div class="suggestion-form-container">
+        <form id="suggestion-form" class="suggestion-form">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label for="category">类别</label>
+                <div class="category-tabs">
+                    <label class="category-option">
+                        <input type="radio" name="category" value="suggestion" checked>
+                        <span class="category-label">💡 建议</span>
+                    </label>
+                    <label class="category-option">
+                        <input type="radio" name="category" value="complaint">
+                        <span class="category-label">😤 投诉</span>
+                    </label>
+                    <label class="category-option">
+                        <input type="radio" name="category" value="praise">
+                        <span class="category-label">👍 表扬</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="content">内容 <span class="required">*</span></label>
+                <textarea id="content" name="content" rows="8" maxlength="1000" placeholder="请详细描述您的意见或建议..."
+                    required></textarea>
+                <div class="char-count">
+                    <span id="char-count">0</span> / 1000
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="contact_info">联系方式（可选）</label>
+                <input type="text" id="contact_info" name="contact_info" placeholder="如需回复，请留下您的联系方式" maxlength="100">
+                <small class="form-hint">我们会对您的个人信息保密</small>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="submit-btn" id="submit-btn">
+                    <span class="btn-text">提交</span>
+                </button>
+                <button type="button" class="reset-btn" onclick="resetForm()">重置</button>
+            </div>
+        </form>
+
+        <div class="success-message" id="success-message">
+            <div class="success-icon">✅</div>
+            <h3>提交成功！</h3>
+            <p>感谢您的反馈，我们会认真处理每一条意见建议。</p>
+            <button class="continue-btn" onclick="continueSubmit()">继续提交</button>
+            <a href="{% url 'core:index' %}" class="back-home-btn">返回首页</a>
+        </div>
+    </div>
+</div>
+
+<!-- Toast 提示 -->
+<div id="toast" class="toast"></div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const form = document.getElementById('suggestion-form');
+    const successMessage = document.getElementById('success-message');
+    const contentTextarea = document.getElementById('content');
+    const charCount = document.getElementById('char-count');
+    const submitBtn = document.getElementById('submit-btn');
+
+    // 字符计数
+    contentTextarea.addEventListener('input', () => {
+        const count = contentTextarea.value.length;
+        charCount.textContent = count;
+
+        if (count > 900) {
+            charCount.style.color = '#ff3b30';
+        } else {
+            charCount.style.color = '#666';
+        }
+    });
+
+    // 获取 CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // 显示提示
+    function showToast(message, type = 'success') {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.className = `toast ${type} show`;
+
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, 3000);
+    }
+
+    // 表单提交
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const formData = new FormData(form);
+        submitBtn.disabled = true;
+        submitBtn.querySelector('.btn-text').textContent = '提交中...';
+
+        try {
+            const response = await fetch('/api/suggestion/', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                form.style.display = 'none';
+                successMessage.style.display = 'block';
+            } else {
+                showToast(`❌ ${data.error}`, 'error');
+                submitBtn.disabled = false;
+                submitBtn.querySelector('.btn-text').textContent = '提交';
+            }
+        } catch (error) {
+            showToast('❌ 提交失败，请稍后重试', 'error');
+            console.error('提交错误:', error);
+            submitBtn.disabled = false;
+            submitBtn.querySelector('.btn-text').textContent = '提交';
+        }
+    });
+
+    // 重置表单
+    function resetForm() {
+        form.reset();
+        charCount.textContent = '0';
+        charCount.style.color = '#666';
+    }
+
+    // 继续提交
+    function continueSubmit() {
+        form.reset();
+        charCount.textContent = '0';
+        charCount.style.color = '#666';
+        form.style.display = 'block';
+        successMessage.style.display = 'none';
+        submitBtn.disabled = false;
+        submitBtn.querySelector('.btn-text').textContent = '提交';
+    }
+</script>
+{% endblock %}

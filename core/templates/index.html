@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}首页 - 明天最想吃榜{% endblock %}
+
+{% block content %}
+<div class="container">
+    <section class="hero">
+        <h1 class="hero-title">🌟 明天最想吃榜 🌟</h1>
+        <p class="hero-subtitle">为明天的美食投上你的一票！</p>
+    </section>
+
+    <!-- 排行榜区域 -->
+    <section class="rankings-section">
+        <!-- 早餐排行 -->
+        <div class="ranking-card breakfast-card">
+            <div class="card-header">
+                <h2 class="card-title">🌅 早餐 TOP 3</h2>
+            </div>
+            <div class="ranking-list" id="breakfast-ranking">
+                <div class="loading">加载中...</div>
+            </div>
+            <a href="{% url 'core:vote_page' %}#breakfast" class="vote-btn breakfast-btn">去投票</a>
+        </div>
+
+        <!-- 午餐排行 -->
+        <div class="ranking-card lunch-card">
+            <div class="card-header">
+                <h2 class="card-title">☀️ 午餐 TOP 5</h2>
+            </div>
+            <div class="ranking-list" id="lunch-ranking">
+                <div class="loading">加载中...</div>
+            </div>
+            <a href="{% url 'core:vote_page' %}#lunch" class="vote-btn lunch-btn">去投票</a>
+        </div>
+
+        <!-- 晚餐排行 -->
+        <div class="ranking-card dinner-card">
+            <div class="card-header">
+                <h2 class="card-title">🌙 晚餐 TOP 5</h2>
+            </div>
+            <div class="ranking-list" id="dinner-ranking">
+                <div class="loading">加载中...</div>
+            </div>
+            <a href="{% url 'core:vote_page' %}#dinner" class="vote-btn dinner-btn">去投票</a>
+        </div>
+    </section>
+
+    <!-- 词云区域 -->
+    <section class="wordcloud-section" onclick="window.location.href='{% url 'core:suggestion_page' %}'">
+        <h2 class="section-title">💬 大家都在说什么</h2>
+        <div class="wordcloud-container" id="wordcloud">
+            <div class="loading">加载中...</div>
+        </div>
+        <p class="wordcloud-hint">点击进入提交意见建议</p>
+    </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // 加载排行榜数据
+    async function loadRankings() {
+        try {
+            const response = await fetch('/api/rankings/');
+            const data = await response.json();
+
+            // 渲染早餐
+            renderRanking('breakfast-ranking', data.breakfast, ['🥇', '🥈', '🥉']);
+
+            // 渲染午餐
+            renderRanking('lunch-ranking', data.lunch, ['🥇', '🥈', '🥉', '4️⃣', '5️⃣']);
+
+            // 渲染晚餐
+            renderRanking('dinner-ranking', data.dinner, ['🥇', '🥈', '🥉', '4️⃣', '5️⃣']);
+        } catch (error) {
+            console.error('加载排行榜失败:', error);
+        }
+    }
+
+    function renderRanking(elementId, items, medals) {
+        const container = document.getElementById(elementId);
+        if (items.length === 0) {
+            container.innerHTML = '<div class="empty-state">暂无数据，快去投票吧！</div>';
+            return;
+        }
+
+        const html = items.map((item, index) => `
+            <div class="ranking-item" data-rank="${index + 1}">
+                <span class="rank-medal">${medals[index]}</span>
+                <span class="food-name">${item.name}</span>
+                <span class="vote-count">${item.votes} 票</span>
+            </div>
+        `).join('');
+
+        container.innerHTML = html;
+    }
+
+    // 加载词云数据
+    async function loadWordcloud() {
+        try {
+            const response = await fetch('/api/wordcloud/');
+            const data = await response.json();
+
+            const container = document.getElementById('wordcloud');
+            if (data.words.length === 0) {
+                container.innerHTML = '<div class="empty-state">暂无数据</div>';
+                return;
+            }
+
+            // 生成词云HTML
+            const html = data.words.map((word, index) => {
+                const size = Math.max(14, Math.min(36, word.weight * 0.8));
+                const delay = index * 0.1;
+                return `<span class="word" style="font-size: ${size}px; animation-delay: ${delay}s">${word.text}</span>`;
+            }).join('');
+
+            container.innerHTML = html;
+        } catch (error) {
+            console.error('加载词云失败:', error);
+        }
+    }
+
+    // 页面加载时获取数据
+    document.addEventListener('DOMContentLoaded', () => {
+        loadRankings();
+        loadWordcloud();
+
+        // 每30秒刷新一次排行榜
+        setInterval(loadRankings, 30000);
+    });
+</script>
+{% endblock %}
