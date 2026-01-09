@@ -71,7 +71,7 @@
 
 ### 1. 首页 - 排行榜展示
 
-![首页截图](file:///Users/henry.jack/.gemini/antigravity/brain/551b5003-645d-4f97-b46e-ae01b1e4a021/homepage_full_1767876821607.png)
+![首页截图](./images/homepage_full_1767876821607.png)
 
 **特点：**
 - 三列卡片布局，分别显示早中晚餐排行
@@ -100,7 +100,7 @@
 
 ### 2. 词云展示
 
-![词云截图](file:///Users/henry.jack/.gemini/antigravity/brain/551b5003-645d-4f97-b46e-ae01b1e4a021/homepage_bottom_1767876854848.png)
+![词云截图](./images/homepage_bottom_1767876854848.png)
 
 **特点：**
 - 提取最近30天公开建议的关键词
@@ -114,9 +114,9 @@
 
 ### 3. 投票页面
 
-![投票页面 - 早餐](file:///Users/henry.jack/.gemini/antigravity/brain/551b5003-645d-4f97-b46e-ae01b1e4a021/breakfast_tab_initial_1767876909980.png)
+![投票页面 - 早餐](./images/breakfast_tab_initial_1767876909980.png)
 
-![投票页面 - 午餐](file:///Users/henry.jack/.gemini/antigravity/brain/551b5003-645d-4f97-b46e-ae01b1e4a021/lunch_tab_view_1767876934478.png)
+![投票页面 - 午餐](./images/lunch_tab_view_1767876934478.png)
 
 **特点：**
 - Tab切换设计（早餐/午餐/晚餐）
@@ -335,10 +335,10 @@ venv\Scripts\activate     # Windows
 ## 演示录像
 
 ### 网站首页浏览
-![演示录像](file:///Users/henry.jack/.gemini/antigravity/brain/551b5003-645d-4f97-b46e-ae01b1e4a021/website_homepage_demo_1767876802100.webp)
+![演示录像](./images/website_homepage_demo_1767876802100.webp)
 
 ### 投票页面操作
-![投票演示](file:///Users/henry.jack/.gemini/antigravity/brain/551b5003-645d-4f97-b46e-ae01b1e4a021/vote_page_demo_1767876892240.webp)
+![投票演示](./images/vote_page_demo_1767876892240.webp)
 
 ---
 
